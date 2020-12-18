@@ -57,6 +57,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
 
         %% 情形二：功率约束为有效约束
         while(1)
+            
         end 
         
         %% 判断是否跳出
