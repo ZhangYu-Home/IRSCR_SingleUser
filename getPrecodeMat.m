@@ -120,6 +120,10 @@ end
 
 %% 在情形一中，当mu变化时，计算预编码矩阵时用到的函数
 function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat)
+    if(mu > 10000)
+        disp(['mu = ',num2str(mu)]);
+        exit();
+    end
     n_SU = size(precode_mat,3);
     mat_coeff1 = inv(X_0+mu*Z_p);
     mat_coeff2 = mu*(Z_p - X_p);
