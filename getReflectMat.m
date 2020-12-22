@@ -39,8 +39,6 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat)
         reflect_vec = exp(1j*angle(q_0_n));
         if(real(reflect_vec'*q_p_n) < omga_p_n)
             %确定alpha的上下界
-            alpha_low = 0;
-            alpha_up = 0.1;
             alpha = 0.1;
             while(1)
                 reflect_vec = exp(1j*angle(q_0_n+alpha*q_p_n));
@@ -50,10 +48,9 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat)
                     break;
                 end
             end
-            if(alpha > 0.1)
-                alpha_low = alpha/2;
-                alpha_up = alpha;
-            end
+            alpha_low = 0;
+            alpha_up = alpha;
+
             %二分搜索确定alpha取值
             while(1)
                 alpha = (alpha_up - alpha_low)/2;
