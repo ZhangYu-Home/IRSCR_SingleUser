@@ -36,7 +36,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                 val_J = calInterferenceLeak1(Z_p,X_p,precode_mat,precode_mat_tmp);
                 if(val_J > leak_pow_tmp) mu = mu * 2; else break; end
             end
-            mu_low = mu/2;
+            mu_low = 0;
             mu_up = mu;
             
             %基于求得的上界和下界，利用二分搜索求解上界和下界
@@ -62,13 +62,14 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
             precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
             %如果两个约束条件有一个不满足，则继续计算
             if(calTotalPower(precode_mat) > scene.max_pow || calInterferenceLeak2(Z_p,X_p,precode_mat,precode_mat_tmp) < leak_pow_tmp)
-                mu = calMu2();
+                mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                 precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
                 %如果功率约束条件不满足，则继续计算
                 if(calTotalPower(precode_mat) > scene.max_pow)
+                    %利用指数步进寻找lambda的上界
                     lambda = 0.1;
                     while(1)
-                        mu = calMu2();
+                        mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                         precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
                         if(calTotalPower(precode_mat) > scene.max_pow)
                             lambda = lambda*2;
@@ -76,13 +77,13 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                             break;
                         end
                     end
-
+                    lambda_low = 0;
                     lambda_up = lambda;
-                    lambda_low = lambda/2;
-
+                    
+                    %利用二分搜索求解最优lambda
                     while(1)
                         lambda = (lambda_up + lambda_low)/2;
-                        mu = calMu2();
+                        mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                         precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
                         val_P = calTotalPower(precode_mat);
                         if(val_P > scene.max_pow) 
@@ -92,7 +93,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                         end
                         if(lambda_up-lambda_low < 0.001)
                             lambda = lambda_up;
-                            mu = calMu2();
+                            mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                             precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
                             break;
                         end
@@ -120,10 +121,10 @@ end
 %% 在情形一中，当mu变化时，计算预编码矩阵时用到的函数
 function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat)
     n_SU = size(precode_mat,3);
-    tmp_coeff1 = inv(X_0+mu*Z_p);
-    tmp_coeff2 = mu*(Z_p - X_p);
+    mat_coeff1 = inv(X_0+mu*Z_p);
+    mat_coeff2 = mu*(Z_p - X_p);
     for i = 1:n_SU
-        precode_mat(:,:,i) = tmp_coeff1*(Y(:,:,i)-tmp_coeff2*precode_mat(:,:,i));
+        precode_mat(:,:,i) = mat_coeff1*(Y(:,:,i)-mat_coeff2*precode_mat(:,:,i));
     end
 end
 
@@ -173,7 +174,7 @@ function mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lamb
     end
     tmp_coeff2 = 0;
     for i = 1:n_SU
-        tmp_coeff2 = tmp_coeff2 + 2*real(trace(precode_mat_tmp(:,:,i)'*mat_coe1*precode_mat_tmp(:,:,i)));
+        tmp_coeff2 = tmp_coeff2 + 2*real(trace(precode_mat_tmp(:,:,i)'*mat_coe2*precode_mat_tmp(:,:,i)));
     end
 
     mu = tmp_coeff1/tmp_coeff2;
