@@ -1,5 +1,5 @@
 %% 计算IRS反射系数
-function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat)
+function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decode_mat,weight_mat)
     % 计算所有预编码矩阵与其共轭转职乘积的和
     Q_s = zeros(scene.n_ante_AP,scene.n_ante_AP);
     for i = 1:scene.n_SU
@@ -34,6 +34,7 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat)
         reflect_vec_tmp = reflect_vec;
         q_0_n = (lambda_0*eye(scene.m_IRS)-gamma_0)*reflect_vec_tmp - d_0_conj;
         q_p_n = (lambda_p*eye(scene.m_IRS)-gamma_p)*reflect_vec_tmp - d_p_conj;
+        X_p = lambda_p*eye(scene.m_IRS);
         omga_p_n = (scene.m_IRS*lambda_p+reflect_vec_tmp'*(X_p-gamma_p)*reflect_vec_tmp-leak_pow_tmp)/2;
 
         reflect_vec = exp(1j*angle(q_0_n));
