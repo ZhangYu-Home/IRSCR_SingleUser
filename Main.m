@@ -11,8 +11,6 @@ func = normalFuncSet; %导入函数集
 n_monte = 2; %蒙特卡洛仿真次数
 n_pow = 10; %功率迭代的次数     
 [scene,dist] = func.init();%初始化场景参数
-scene
-dist
 
 %% 进行蒙特卡洛仿真
 tic
@@ -21,11 +19,10 @@ for cnt_monte = 1:n_monte
     channel = func.setChannel(scene, dist);
     for cnt_pow = 1:n_pow
         scene.max_pow = 0.2*cnt_pow;
-        %disp(['    The max Power is ', num2str(scene.max_pow),'W.']);
+        disp(['    The max Power is ', num2str(scene.max_pow),'W.']);
         %% 初始化过程
         %初始化反射系数矩阵和预编码矩阵
-        [precode_mat,reflect_mat] = func.initPrecodeAndReflectMat(scene);
-        
+        [precode_mat,reflect_mat] = func.initPrecodeAndReflectMat(scene);       
         %计算联合信道
         [g_AP_PU,g_AP_SUs] = func.getUnionChannel(channel,reflect_mat);
         %计算每个次级用户对应的功率矩阵和干扰协方差矩阵
