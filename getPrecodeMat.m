@@ -58,36 +58,46 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
             mu = 0;
             precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
             %如果两个约束条件有一个不满足，则继续计算
-            if(calTotalPower(precode_mat) > scene.max_pow || calInterferenceLeak2(Z_p,X_p,precode_mat,precode_mat_tmp) < leak_pow_tmp)
+            if(calInterferenceLeak2(Z_p,X_p,precode_mat,precode_mat_tmp) < leak_pow_tmp)
                 mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                 precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
-                %如果功率约束条件不满足，则继续计算
-                if(calTotalPower(precode_mat) > scene.max_pow)
-                    %利用指数步进寻找lambda的上界
-                    lambda_low = 0;
-                    lambda_up = 0.1;
-                    while(calTotalPower(precode_mat) > scene.max_pow)
-                        lambda_up = lambda_up*2;
+            end
+            %如果功率约束条件不满足，则继续计算
+            if(calTotalPower(precode_mat) > scene.max_pow)
+                %利用指数步进寻找lambda的上界
+                lambda_low = 0;
+                lambda_up = 0.1;
+                while(calTotalPower(precode_mat) > scene.max_pow)
+                    lambda_up = lambda_up*2;
+                    mu = 0;
+                    precode_mat = calPrecodeMat2(X_0,Z_p,lambda_up,mu,Y,X_p,precode_mat_tmp);
+                    if(calInterferenceLeak2(Z_p,X_p,precode_mat,precode_mat_tmp) < leak_pow_tmp)
                         mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda_up);
                         precode_mat = calPrecodeMat2(X_0,Z_p,lambda_up,mu,Y,X_p,precode_mat_tmp);
                     end
-                    
-                    %利用二分搜索求解最优lambda
-                    while(lambda_up-lambda_low > 0.001)
-                        lambda = (lambda_up + lambda_low)/2;
+                end
+
+                %利用二分搜索求解最优lambda
+                while(lambda_up-lambda_low > 0.001)
+                    lambda = (lambda_up + lambda_low)/2;
+                    mu = 0;
+                    precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
+                    %如果两个约束条件有一个不满足，则继续计算
+                    if(calInterferenceLeak2(Z_p,X_p,precode_mat,precode_mat_tmp) < leak_pow_tmp)
                         mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                         precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
-                        val_P = calTotalPower(precode_mat);
-                        if(val_P > scene.max_pow) 
-                            lambda_up = lambda; 
-                        else
-                            lambda_low = lambda;
-                        end
                     end
-                    mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda_up);
-                    precode_mat = calPrecodeMat2(X_0,Z_p,lambda_up,mu,Y,X_p,precode_mat_tmp);
-                end 
-            end
+
+                    val_P = calTotalPower(precode_mat);
+                    if(val_P > scene.max_pow) 
+                        lambda_up = lambda; 
+                    else
+                        lambda_low = lambda;
+                    end
+                end
+                mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda_up);
+                precode_mat = calPrecodeMat2(X_0,Z_p,lambda_up,mu,Y,X_p,precode_mat_tmp);
+            end 
         end
        
         %% 判断是否跳出
