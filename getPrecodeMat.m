@@ -89,16 +89,11 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                 end 
             end
         end
-
-        
-        
+       
         %% ÅÐ¶ÏÊÇ·ñÌø³ö
-        [sig_mat,jam_mat] = func.getSigAndJamMat(g_AP_SUs,precode_mat_tmp,scene.noise_SU);
-        sum_rate_tmp = func.getWeightSumRate(sig_mat,jam_mat);
-        [sig_mat,jam_mat] = func.getSigAndJamMat(g_AP_SUs,precode_mat,scene.noise_SU);
-        sum_rate = func.getWeightSumRate(sig_mat,jam_mat);
-        
-        if(abs(sum_rate-sum_rate_tmp) < 1e-6)
+        val_obj_tmp = calValObjFunc(X_0,Y,precode_mat_tmp);
+        val_obj = calValObjFunc(X_0,Y,precode_mat);
+        if(abs(val_obj-val_obj_tmp) < 1e-6)
             break;
         end
     end
