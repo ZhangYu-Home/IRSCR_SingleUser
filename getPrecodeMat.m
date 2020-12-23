@@ -9,7 +9,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
     end
 
     X_p = g_AP_PU'*g_AP_PU;
-    Z_p = max(eig(X_p))*eye(scene.n_ante_AP);
+    Z_p = max(real(eig(X_p)))*eye(scene.n_ante_AP);
 
     Y = zeros(scene.n_data,scene.n_ante_AP,scene.n_SU);
     for i = 1:scene.n_SU
@@ -124,15 +124,13 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
 end
 
 %% 在情形一中，当mu变化时，计算预编码矩阵时用到的函数
-function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat)
-    if(mu > 10000)
-        disp(['mu = ',num2str(mu)]);
-    end
-    n_SU = size(precode_mat,3);
+function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat_tmp)
+    n_SU = size(precode_mat_tmp,3);
     mat_coeff1 = inv(X_0+mu*Z_p);
     mat_coeff2 = mu*(Z_p - X_p);
+    precode_mat = zeros(size(precode_mat_tmp));
     for i = 1:n_SU
-        precode_mat(:,:,i) = mat_coeff1*(Y(:,:,i)-mat_coeff2*precode_mat(:,:,i));
+        precode_mat(:,:,i) = mat_coeff1*(Y(:,:,i)'-mat_coeff2*precode_mat_tmp(:,:,i));
     end
 end
 
