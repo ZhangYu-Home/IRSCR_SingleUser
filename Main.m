@@ -38,7 +38,7 @@ for cnt_monte = 1:n_monte
             %给定其他参数的情况下计算预编码矩阵
             precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_mat,precode_mat);
             %给定其他参数的情况下计算反射系数矩阵
-            reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat);          
+            reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decode_mat,weight_mat);          
             %计算联合信道
             [g_AP_PU,g_AP_SUs] = func.getUnionChannel(channel,reflect_mat);
             %计算每个次级用户对应的功率矩阵和干扰协方差矩阵
