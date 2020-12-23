@@ -32,6 +32,8 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
             %利用指数步进确定mu的上界和下界
             mu = 0.1;
             while(1)
+                disp('情形一')
+                pause;
                 precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat_tmp);
                 val_J = calInterferenceLeak1(Z_p,X_p,precode_mat,precode_mat_tmp);
                 if(val_J > leak_pow_tmp) mu = mu * 2; else break; end
@@ -40,6 +42,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
             mu_up = mu;
             
             %基于求得的上界和下界，利用二分搜索求解上界和下界
+            disp('二分搜索');
             while(1)
                 mu = (mu_low + mu_up)/2;
                 precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat_tmp);
@@ -55,6 +58,8 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
         
         %% 判断是否满足功率约束，如果不满足，考虑情形二
         if(calTotalPower(precode_mat) > scene.max_pow)
+            disp('情形二')
+            pause;
             %% 情形二：功率约束为有效约束
             leak_pow_tmp = max(eig(X_p))*scene.max_pow - leak_pow_tmp;
             lambda = 0;
@@ -122,7 +127,6 @@ end
 function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat)
     if(mu > 10000)
         disp(['mu = ',num2str(mu)]);
-        exit();
     end
     n_SU = size(precode_mat,3);
     mat_coeff1 = inv(X_0+mu*Z_p);
