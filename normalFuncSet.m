@@ -33,7 +33,7 @@ function scene = initScene()
     scene.m_IRS = 5;%IRS反射单元个数
     scene.noise_SU = 1e-6;%次级用户处噪声平均功率
     scene.max_pow = 0.2;%定义最大功率
-    scene.leak_pow = 0.2;%定义主用户的干扰泄漏约束阈值
+    scene.leak_pow = 0.00002;%定义主用户的干扰泄漏约束阈值
     scene.n_data = min(scene.n_ante_AP,scene.n_ante_SU);%发射的数据流数量
 end
 
