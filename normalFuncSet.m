@@ -26,14 +26,14 @@ end
 %% 初始化只包含单个主用户时的场景参数
 function scene = initScene()
     %scene中用于保存需要在后续函数中传递的参数
-    scene.n_SU = 5;%次级用户数
-    scene.n_ante_AP = 6;%次级接入点天线数
-    scene.n_ante_PU = 7;%主用户天线数
-    scene.n_ante_SU = 8;%次级用户天线数
+    scene.n_SU = 2;%次级用户数
+    scene.n_ante_AP = 2;%次级接入点天线数
+    scene.n_ante_PU = 2;%主用户天线数
+    scene.n_ante_SU = 2;%次级用户天线数
     scene.m_IRS = 5;%IRS反射单元个数
-    scene.noise_SU = 1e-11;%次级用户处噪声平均功率
+    scene.noise_SU = 1e-6;%次级用户处噪声平均功率
     scene.max_pow = 0.2;%定义最大功率
-    scene.leak_pow = 1e-6;%定义主用户的干扰泄漏约束阈值
+    scene.leak_pow = 0.2;%定义主用户的干扰泄漏约束阈值
     scene.n_data = min(scene.n_ante_AP,scene.n_ante_SU);%发射的数据流数量
 end
 
@@ -44,10 +44,10 @@ function pos = initNodePos(n_SU)
     pos.AP.y = 0;
     pos.PU.x = 50;%单个主用户的位置
     pos.PU.y = 0;
-    pos.SUs.x = -5 + 10*rand(1,n_SU);%各个次级用户的位置
-    pos.SUs.y = 20 + 10*rand(1,n_SU);
-    pos.IRS.x = 40;%IRS的位置
-    pos.IRS.y = 10;
+    pos.SUs.x = 30 + 4*(rand(1,n_SU)-0.5);%各个次级用户的位置在（20,0）点为中心,边长为4的正方形中
+    pos.SUs.y = 4*(rand(1,n_SU)-0.5);
+    pos.IRS.x = 30;%IRS的位置
+    pos.IRS.y = 5;
 end
 
 %% 初始化各个节点间距离参数
@@ -96,16 +96,6 @@ function channel = setChannel(scene, dist)
  
 end
 
-%% 计算联合信道
-function [g_AP_PU,g_AP_SUs] = getUnionChannel(channel,reflect_mat)
-    g_AP_PU = channel.h_AP_PU+channel.h_IRS_PU*reflect_mat*channel.h_AP_IRS;
-    g_AP_SUs = zeros(size(channel.h_AP_SUs));
-    n_SU = size(channel.h_AP_SUs,3);
-    for i = 1:n_SU
-        g_AP_SUs(:,:,i) = channel.h_AP_SUs(:,:,i)+channel.h_IRS_SUs(:,:,i)*reflect_mat*channel.h_AP_IRS;
-    end
-end
-
 %% 初始化预编码矩阵和反射系数矩阵
 function [precode_mat,reflect_mat] = initPrecodeAndReflectMat(scene)
     %初始化预编码矩阵，按照等功率分配至每个数据流
@@ -115,7 +105,17 @@ function [precode_mat,reflect_mat] = initPrecodeAndReflectMat(scene)
         precode_mat(:,:,i) = tmp_coeff*eye(scene.n_ante_AP,scene.n_data);
     end
     %初始化反射系数矩阵，令所有反射单元相移为0；
-    reflect_mat = eye(scene.n_SU);
+    reflect_mat = eye(scene.m_IRS);
+end
+
+%% 计算联合信道
+function [g_AP_PU,g_AP_SUs] = getUnionChannel(channel,reflect_mat)
+    g_AP_PU = channel.h_AP_PU+channel.h_IRS_PU*reflect_mat*channel.h_AP_IRS;
+    g_AP_SUs = zeros(size(channel.h_AP_SUs));
+    n_SU = size(channel.h_AP_SUs,3);
+    for i = 1:n_SU
+        g_AP_SUs(:,:,i) = channel.h_AP_SUs(:,:,i)+channel.h_IRS_SUs(:,:,i)*reflect_mat*channel.h_AP_IRS;
+    end
 end
 
 %% 计算信号功率矩阵与干扰协方差矩阵
