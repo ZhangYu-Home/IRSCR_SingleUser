@@ -1,6 +1,5 @@
 %% 计算IRS反射系数
 function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decode_mat,weight_mat)
-    disp('进入反射系数求解');
     % 计算所有预编码矩阵与其共轭转职乘积的和
     Q_s = zeros(scene.n_ante_AP,scene.n_ante_AP);
     for i = 1:scene.n_SU
@@ -19,7 +18,7 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
         D_0 = D_0 - channel.h_AP_IRS*precode_mat(:,:,i)*weight_mat(:,:,i)*decode_mat(:,:,i)'*channel.h_IRS_SUs(:,:,i);
     end
     
-    leak_pow_tmp = scene.leak_pow-real(trace(channel.h_AP_PU*Q_s*channel.h_AP_PU'));
+    leak_pow_tmp1 = scene.leak_pow-real(trace(channel.h_AP_PU*Q_s*channel.h_AP_PU'));
     gamma_0 = B_0.*(C.');
     gamma_p = B_p.*(C.');
     lambda_0 = max(real(eig(gamma_0)));
@@ -37,19 +36,26 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
         reflect_vec_tmp = reflect_vec;
         q_0_n = (lambda_0*eye(scene.m_IRS)-gamma_0)*reflect_vec_tmp - d_0_conj;
         q_p_n = (lambda_p*eye(scene.m_IRS)-gamma_p)*reflect_vec_tmp - d_p_conj;
-        leak_pow_tmp = real((scene.m_IRS*lambda_p+reflect_vec_tmp'*(lambda_p*eye(scene.m_IRS)-gamma_p)*reflect_vec_tmp-leak_pow_tmp)/2);
-        disp(['leak_pow_tmp = ',num2str(leak_pow_tmp)]);
+        
+        leak_pow_tmp = real((scene.m_IRS*lambda_p+reflect_vec_tmp'*(lambda_p*eye(scene.m_IRS)-gamma_p)*reflect_vec_tmp-leak_pow_tmp1)/2);
+        
         reflect_vec = exp(1j*angle(q_0_n));
         if(real(reflect_vec'*q_p_n) < leak_pow_tmp)
             %确定alpha的上下界
             alpha_low = 0;
             alpha_up = 0.1;
             while(real(reflect_vec'*q_p_n) < leak_pow_tmp)
+                val_J_tmp = real(reflect_vec'*q_p_n);
                 alpha_up = alpha_up *2;
                 reflect_vec = exp(1j*angle(q_0_n+alpha_up*q_p_n));
-                %disp(['alpha_up = ',num2str(alpha_up)]);
+                val_J = real(reflect_vec'*q_p_n);
+                if(val_J < val_J_tmp)
+                    disp('出错');
+                    disp(['val_J_tmp = ',num2str(val_J_tmp),';val_J = ',num2str(val_J)]);
+                    disp(['alpha_up = ',num2str(alpha_up)]);
+                    pause;
+                end
             end
-            disp('循环1');
             
             %二分搜索确定alpha取值
             while(alpha_up - alpha_low > 0.001)
@@ -61,7 +67,6 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
                     alpha_up = alpha;
                 end
             end
-            disp('循环2');
         end
         
         % 判断是否跳出循环
@@ -73,5 +78,4 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
         end
     end
     reflect_mat = diag(reflect_vec);
-    disp('跳出反射系数求解');
 end
