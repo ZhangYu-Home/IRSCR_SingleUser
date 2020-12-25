@@ -9,7 +9,7 @@ clc;
 %% 初始化参数
 func = normalFuncSet; %导入函数集
 n_monte = 2; %蒙特卡洛仿真次数
-n_pow = 10; %功率迭代的次数     
+n_pow = 2; %功率迭代的次数     
 [scene,dist] = func.init();%初始化场景参数
 
 %% 进行蒙特卡洛仿真
@@ -18,7 +18,7 @@ for cnt_monte = 1:n_monte
     disp(['Iteration = ', num2str(cnt_monte)]);
     channel = func.setChannel(scene, dist);
     for cnt_pow = 1:n_pow
-        scene.max_pow = 0.2*cnt_pow;
+        scene.max_pow = 10*cnt_pow;
         disp(['    The max Power is ', num2str(scene.max_pow),'W.']);
         %% 初始化过程
         %初始化反射系数矩阵和预编码矩阵
@@ -29,9 +29,10 @@ for cnt_monte = 1:n_monte
         [sig_mat,jam_mat] = func.getSigAndJamMat(g_AP_SUs,precode_mat,scene.noise_SU);
         %计算所有次级用户的速率和
         sum_rate = func.getWeightSumRate(sig_mat,jam_mat);
+        disp(['The front sum of rates is ',num2str(sum_rate),' bps.']);
         
         %% 基于交替优化求解问题
-        while(1)
+        for cnt_iter = 1:100
             sum_rate_tmp = sum_rate;
             %计算解码矩阵和辅助矩阵
             [decode_mat,weight_mat] = getDecodeAndWeightMat(sig_mat,jam_mat,g_AP_SUs,precode_mat);
@@ -45,11 +46,12 @@ for cnt_monte = 1:n_monte
             [sig_mat,jam_mat] = func.getSigAndJamMat(g_AP_SUs,precode_mat,scene.noise_SU);
             %计算所有次级用户的速率和
             sum_rate = func.getWeightSumRate(sig_mat,jam_mat);
-            disp(['        The sum of rates is ',num2str(sum_rate),' bps.']);
-            if(abs(sum_rate - sum_rate_tmp) < 0.001)
+            disp(['The back sum of rates is ',num2str(sum_rate),' bps.']);
+            if(abs(sum_rate - sum_rate_tmp) < 0.0001)
                 break;
             end
-        end 
+        end
+        disp(['The back sum of rates is ',num2str(sum_rate),' bps.']);
     end
 end
 toc
