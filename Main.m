@@ -8,7 +8,7 @@ clc;
 
 %% 初始化参数
 func = normalFuncSet; %导入函数集
-n_monte = 100; %蒙特卡洛仿真次数
+n_monte = 10; %蒙特卡洛仿真次数
 n_pow = 10; %功率迭代的次数     
 [scene,dist] = func.init();%初始化场景参数
 rate_vec = zeros(1,n_pow);
