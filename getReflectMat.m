@@ -45,16 +45,9 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
             alpha_low = 0;
             alpha_up = 0.1;
             while(real(reflect_vec'*q_p_n) < leak_pow_tmp)
-                val_J_tmp = real(reflect_vec'*q_p_n);
                 alpha_up = alpha_up *2;
                 reflect_vec = exp(1j*angle(q_0_n+alpha_up*q_p_n));
                 val_J = real(reflect_vec'*q_p_n);
-                if(val_J < val_J_tmp)
-                    disp('出错');
-                    disp(['val_J_tmp = ',num2str(val_J_tmp),';val_J = ',num2str(val_J)]);
-                    disp(['alpha_up = ',num2str(alpha_up)]);
-                    pause;
-                end
             end
             
             %二分搜索确定alpha取值
@@ -72,7 +65,6 @@ function reflect_mat = getReflectMat(scene,channel,precode_mat,reflect_mat,decod
         % 判断是否跳出循环
         tmp1 = real(reflect_vec_tmp'*gamma_0*reflect_vec_tmp) + 2*real(reflect_vec_tmp'*d_0_conj);
         tmp2 = real(reflect_vec'*gamma_0*reflect_vec) + 2*real(reflect_vec'*d_0_conj);
-        %disp(['tmp1 = ',num2str(tmp1),';tmp2 = ',num2str(tmp2)]);
         if(abs(tmp2 - tmp1) < 0.001)
             break;
         end

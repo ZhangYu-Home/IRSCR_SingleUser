@@ -12,7 +12,7 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
     for i = 1:scene.n_SU
         Y(:,:,i) = weight_mat(:,:,i)*decode_mat(:,:,i)'*g_AP_SUs(:,:,i);
     end
-
+    
     while(1)
         %precode_mat_tmp为连续凸近似每一轮迭代的初始点,leak_pow_tmp为相应的近似干扰泄漏阈值
         precode_mat_tmp = precode_mat;
@@ -31,13 +31,8 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
             mu_up = 0.1;
             while(val_J > leak_pow_tmp)
                 mu_up = mu_up * 2;
-%                 val_J_tmp = val_J;
                 precode_mat = calPrecodeMat1(X_0,Z_p,mu_up,Y,X_p,precode_mat_tmp);
                 val_J = calInterferenceLeak1(Z_p,X_p,precode_mat,precode_mat_tmp);
-%                 if(val_J > val_J_tmp)
-%                      disp('出错');
-%                      pause;
-%                 end
             end
             
             %基于求得的上界和下界，利用二分搜索求解上界和下界
@@ -63,7 +58,6 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                 precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
             end
             %如果功率约束条件不满足，则继续计算
-            %val_P = calTotalPower(precode_mat);
             if(calTotalPower(precode_mat) > scene.max_pow)
                 %利用指数步进寻找lambda的上界
                 lambda_low = 0;
@@ -105,20 +99,15 @@ function precode_mat = getPrecodeMat(scene,g_AP_PU,g_AP_SUs,decode_mat,weight_ma
                     mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda);
                     precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat_tmp);
                 end
-%                 val_P = calTotalPower(precode_mat);
-%                 disp(['val_P = ',num2str(val_P)]);
-%                 mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda_up);
-%                 precode_mat = calPrecodeMat2(X_0,Z_p,lambda_up,mu,Y,X_p,precode_mat_tmp);
-%                 val_P = calTotalPower(precode_mat);
-%                 disp(['val_P = ',num2str(val_P)]);
-%                 disp(['lambda = ',num2str(lambda)]);
             end 
         end
        
         %% 判断是否跳出
         val_obj_tmp = calValObjFunc(X_0,Y,precode_mat_tmp);
         val_obj = calValObjFunc(X_0,Y,precode_mat);
-        if(abs(val_obj-val_obj_tmp) < 1e-6)
+        
+        %if(abs(val_obj-val_obj_tmp) < 1e-6)
+        if(val_obj-val_obj_tmp < 1e-6)
             break;
         end
     end
@@ -126,11 +115,9 @@ end
 
 %% 在情形一中，当mu变化时，计算预编码矩阵时用到的函数
 function precode_mat = calPrecodeMat1(X_0,Z_p,mu,Y,X_p,precode_mat_tmp)
-     
-%     [U,V] = eig(X_0);
-%     V = diag(1./(diag(V)+mu*Z_p(1,1)));
-%     mat_coeff1 = U*V*inv(U);
-    mat_coeff1 = inv(X_0+mu*Z_p);
+    [U,V] = eig(X_0);
+    V = diag(1./(diag(V)+mu*Z_p(1,1)));
+    mat_coeff1 = U*V*inv(U);
     mat_coeff2 = mu*(Z_p - X_p);
     precode_mat = zeros(size(precode_mat_tmp));
     for i = 1:size(precode_mat_tmp,3)
@@ -158,14 +145,10 @@ end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%情形二相关函数%%%%%%%%%%%%%%%%%%%%%% 
 %% 在情形二中，当mu和lambda变化时，计算预编码矩阵时用到的函数
-function precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat)
-    
-%     [U,V] = eig(X_0);
-%     for i = 1:size(X_0,1)
-%         V(i,i) = 1/(V(i,i)+lambda);
-%     end
-%     tmp_coeff1 = U*V*inv(U);
-    tmp_coeff1 = inv(X_0+lambda*eye(size(X_0,1)));
+function precode_mat = calPrecodeMat2(X_0,Z_p,lambda,mu,Y,X_p,precode_mat)  
+    [U,V] = eig(X_0);
+    V = diag(1./(diag(V)+lambda));
+    tmp_coeff1 = U*V*inv(U);
     tmp_coeff2 = mu*(Z_p - X_p);
     for i = 1:size(precode_mat,3)
         precode_mat(:,:,i) = tmp_coeff1*(Y(:,:,i)'+tmp_coeff2*precode_mat(:,:,i));

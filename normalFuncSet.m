@@ -26,14 +26,14 @@ end
 %% 初始化只包含单个主用户时的场景参数
 function scene = initScene()
     %scene中用于保存需要在后续函数中传递的参数
-    scene.n_SU = 2;%次级用户数
-    scene.n_ante_AP = 2;%次级接入点天线数
+    scene.n_SU = 3;%次级用户数
+    scene.n_ante_AP = 4;%次级接入点天线数
     scene.n_ante_PU = 2;%主用户天线数
     scene.n_ante_SU = 2;%次级用户天线数
-    scene.m_IRS = 5;%IRS反射单元个数
+    scene.m_IRS = 10;%IRS反射单元个数
     scene.noise_SU = 1e-6;%次级用户处噪声平均功率
     scene.max_pow = 0.2;%定义最大功率
-    scene.leak_pow = 0.00002;%定义主用户的干扰泄漏约束阈值
+    scene.leak_pow = 2e-4;%定义主用户的干扰泄漏约束阈值
     scene.n_data = min(scene.n_ante_AP,scene.n_ante_SU);%发射的数据流数量
 end
 
