@@ -165,7 +165,7 @@ end
 %% 在情形二中，给定lamdba下，计算mu值
 function mu = calMu2(leak_pow_tmp,X_0,Z_p,X_p,Y,precode_mat,precode_mat_tmp,lambda)
     n_SU = size(precode_mat,3);
-    mat_coe1 = (Z_p-X_p)*inv(X_0+lambda*eye(size(X_0,1)));
+    mat_coe1 = (Z_p-X_p)*inv(X_0+lambda*eye(size(X_0,1)));%此处可进行修改，使其避免禁告，暂时还未修改！！！！
     mat_coe2 = mat_coe1*(Z_p-X_p);
     tmp_coeff1 = leak_pow_tmp;
     for i = 1:n_SU
