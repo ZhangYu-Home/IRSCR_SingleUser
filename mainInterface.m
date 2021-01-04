@@ -8,16 +8,16 @@ clc;
 
 %% 初始化参数
 func = normalFuncSet; %导入函数集
-n_monte = 10; %蒙特卡洛仿真次数
+n_monte = 1000; %蒙特卡洛仿真次数
 n_pow = 5; %功率迭代的次数     
 acc_stop = 0.001;%主程序运行时的停止精度
 max_cnt_alg = 100;%算法最大迭代次数
 rate_mat = zeros(n_pow,3);%用于存储速率
-leak_pow_vec = [1,5,10,50,10];
 
 %% 初始化场景参数
 [scene,dist] = func.init();
 scene.m_IRS = 80;
+scene.max_pow = 5;
 
 %% 进行蒙特卡洛仿真
 tic
@@ -25,8 +25,7 @@ for cnt_monte = 1:n_monte
     disp(['Iteration = ', num2str(cnt_monte)]);
     channel = func.setChannel(scene, dist);
     for cnt_pow = 1:n_pow
-        %scene.max_pow = cnt_pow;
-        scene.leak_pow = (1e-7) * cnt_pow;
+        scene.leak_pow = (2e-5) * cnt_pow;
         disp(['    The leak Power is ', num2str(scene.leak_pow),'W.']);
         %% 初始化过程
         %初始化反射系数矩阵和预编码矩阵
