@@ -36,7 +36,7 @@ for cnt_monte = 1:n_monte
         [sig_mat,jam_mat] = func.getSigAndJamMat(channel.h_AP_SUs,precode_mat,scene.noise_SU);
         %计算所有次级用户的速率和
         sum_rate = func.getWeightSumRate(sig_mat,jam_mat);
-        disp(['The front sum of rates is ',num2str(sum_rate),' bps.']);
+        %disp(['The front sum of rates is ',num2str(sum_rate),' bps.']);
         for cnt_iter = 1:max_cnt_alg
             sum_rate_tmp = sum_rate;
             %计算解码矩阵和辅助矩阵
@@ -53,7 +53,7 @@ for cnt_monte = 1:n_monte
             end
         end
         rate_mat(cnt_pow,1) = rate_mat(cnt_pow,1) + sum_rate;
-        disp(['The back1 sum of rates is ',num2str(sum_rate),' bps.']);
+        %disp(['The back1 sum of rates is ',num2str(sum_rate),' bps.']);
 
         %% 固定IRS，基于交替优化求解问题
         %计算联合信道
@@ -62,7 +62,7 @@ for cnt_monte = 1:n_monte
         [sig_mat,jam_mat] = func.getSigAndJamMat(g_AP_SUs,precode_mat,scene.noise_SU);
         %计算所有次级用户的速率和
         sum_rate = func.getWeightSumRate(sig_mat,jam_mat);
-        disp(['The front sum of rates is ',num2str(sum_rate),' bps.']);
+        %disp(['The front sum of rates is ',num2str(sum_rate),' bps.']);
         for cnt_iter = 1:max_cnt_alg
             sum_rate_tmp = sum_rate;
             %计算解码矩阵和辅助矩阵
@@ -79,7 +79,7 @@ for cnt_monte = 1:n_monte
             end
         end
         rate_mat(cnt_pow,2) = rate_mat(cnt_pow,2) + sum_rate;
-        disp(['The back2 sum of rates is ',num2str(sum_rate),' bps.']);
+        %disp(['The back2 sum of rates is ',num2str(sum_rate),' bps.']);
         
         %% 优化IRS，基于交替优化求解问题
         for cnt_iter = 1:max_cnt_alg
@@ -102,7 +102,7 @@ for cnt_monte = 1:n_monte
             end
         end
         rate_mat(cnt_pow,3) = rate_mat(cnt_pow,3) + sum_rate;
-        disp(['The back3 sum of rates is ',num2str(sum_rate),' bps.']);
+        %disp(['The back3 sum of rates is ',num2str(sum_rate),' bps.']);
     end
 end
 rate_mat = rate_mat/n_monte;
